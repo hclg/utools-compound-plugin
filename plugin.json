@@ -1,0 +1,19 @@
+{
+  "pluginName": "复利计算器",
+  "version": "1.0.0",
+  "description": "复利终值计算、定投模拟、收益曲线展示、CSV导出",
+  "main": "/dist/index.html",
+  "logo": "logo.png",
+  "preload": "preload.js",
+  "features": [
+    {
+      "code": "compound",
+      "explain": "复利计算器",
+      "cmds": ["复利", "复利计算器", "compound"],
+      "icon": "logo.png",
+      "type": "window",
+      "width": 760,
+      "height": 630
+    }
+  ]
+}
