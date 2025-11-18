@@ -13,7 +13,7 @@ export default defineConfig({
         icon: true, exportType: 'named', namedExport: 'ReactComponent', }, }), miaodaDevPlugin()],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
+      '@': path.resolve(__dirname, './src').replace(/\\/g, '/'),
     },
   },
 });

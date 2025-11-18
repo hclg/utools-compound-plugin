@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import CalculatorForm from '@/components/calculator/CalculatorForm';
 import ResultSummary from '@/components/calculator/ResultSummary';
 import YearlyDetailsTable from '@/components/calculator/YearlyDetailsTable';
 import GrowthChart from '@/components/calculator/GrowthChart';
 import type { CalculationParams, CalculationResult } from '@/types/compound-interest';
 import { calculateCompoundInterest, exportToCSV, downloadCSV } from '@/utils/compound-interest';
-import { Download } from 'lucide-react';
+import { Download, Calculator } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function CompoundInterestCalculator() {
@@ -150,7 +151,3 @@ export default function CompoundInterestCalculator() {
     </div>
   );
 }
-
-// 导入Card组件
-import { Card, CardContent } from '@/components/ui/card';
-import { Calculator } from 'lucide-react';
