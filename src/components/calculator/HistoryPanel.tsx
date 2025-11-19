@@ -8,15 +8,19 @@ import { zhCN } from 'date-fns/locale';
 
 interface HistoryPanelProps {
   onSelectRecord?: (record: CalculationRecord) => void;
+  history: CalculationRecord[];
+  onHistoryChange: () => void;
 }
 
-export default function HistoryPanel({ onSelectRecord }: HistoryPanelProps) {
-  const history = getHistory();
-
+export default function HistoryPanel({ 
+  onSelectRecord, 
+  history,
+  onHistoryChange
+}: HistoryPanelProps) {
   const handleClearHistory = () => {
     if (window.confirm('确定要清空所有历史记录吗？此操作不可撤销。')) {
       clearHistory();
-      window.location.reload(); // 重新加载以更新UI
+      onHistoryChange(); // 通知父组件更新历史记录
     }
   };
 

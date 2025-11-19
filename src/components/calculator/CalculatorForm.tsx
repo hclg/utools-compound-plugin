@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
-import { saveCalculation, type CalculationRecord } from '@/utils/history';
+import { getHistory, saveCalculation, type CalculationRecord } from '@/utils/history';
 import {
   Dialog,
   DialogContent,
@@ -48,15 +48,18 @@ const formSchema = z.object({
   principal: z
     .number({ invalid_type_error: '请输入有效的数字' })
     .min(0.01, '本金必须大于0')
-    .max(1000000000, '本金不能超过10亿'),
+    .max(1000000000, '本金不能超过10亿')
+    .refine(val => val !== undefined, { message: '请输入本金' }),
   annualRate: z
     .number({ invalid_type_error: '请输入有效的数字' })
     .min(0, '年利率不能为负')
-    .max(100, '年利率不能超过100%'),
+    .max(100, '年利率不能超过100%')
+    .refine(val => val !== undefined, { message: '请输入年利率' }),
   period: z
     .number({ invalid_type_error: '请输入有效的数字' })
     .min(1, '投资期限至少为1')
-    .max(100, '投资期限不能超过100'),
+    .max(100, '投资期限不能超过100')
+    .refine(val => val !== undefined, { message: '请输入投资期限' }),
   periodUnit: z.enum(['year', 'month']),
   frequency: z.enum(['yearly', 'semi-annually', 'quarterly', 'monthly']),
   additionalInvestment: z
@@ -90,6 +93,11 @@ export default function CalculatorForm({ onCalculate }: CalculatorFormProps) {
   });
 
   const [showHistory, setShowHistory] = useState(false);
+  const [history, setHistory] = useState<CalculationRecord[]>(getHistory());
+
+  const refreshHistory = () => {
+    setHistory(getHistory());
+  };
 
   const onSubmit = async (values: FormValues) => {
     const params = values as CalculationParams;
@@ -111,6 +119,7 @@ export default function CalculatorForm({ onCalculate }: CalculatorFormProps) {
       },
       result
     });
+    refreshHistory(); // 保存后刷新历史记录
   };
 
   const handleSelectHistory = (record: CalculationRecord) => {
@@ -156,13 +165,17 @@ export default function CalculatorForm({ onCalculate }: CalculatorFormProps) {
                 <FormItem>
                   <FormLabel>本金（元）</FormLabel>
                   <FormControl>
-                    <Input
-                      type="number"
-                      placeholder="请输入初始投资金额"
-                      {...field}
-                      onChange={(e) => field.onChange(Number.parseFloat(e.target.value) || 0)}
-                      className="focus-visible:ring-primary"
-                    />
+                      <Input
+                        type="number"
+                        placeholder="请输入初始投资金额"
+                        {...field}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          field.onChange(value === '' ? '' : Number.parseFloat(value));
+                        }}
+                        value={field.value ?? ''}
+                        className="focus-visible:ring-primary"
+                      />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -181,7 +194,11 @@ export default function CalculatorForm({ onCalculate }: CalculatorFormProps) {
                       step="0.01"
                       placeholder="请输入年利率"
                       {...field}
-                      onChange={(e) => field.onChange(Number.parseFloat(e.target.value) || 0)}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        field.onChange(value === '' ? '' : Number.parseFloat(value));
+                      }}
+                      value={field.value ?? ''}
                       className="focus-visible:ring-primary"
                     />
                   </FormControl>
@@ -216,7 +233,11 @@ export default function CalculatorForm({ onCalculate }: CalculatorFormProps) {
                         type="number"
                         placeholder="期限"
                         {...field}
-                        onChange={(e) => field.onChange(Number.parseInt(e.target.value) || 0)}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          field.onChange(value === '' ? '' : Number.parseInt(value));
+                        }}
+                        value={field.value ?? ''}
                         className="focus-visible:ring-primary"
                       />
                     </FormControl>
@@ -284,7 +305,11 @@ export default function CalculatorForm({ onCalculate }: CalculatorFormProps) {
                         type="number"
                         placeholder="追加金额"
                         {...field}
-                        onChange={(e) => field.onChange(Number.parseFloat(e.target.value) || 0)}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          field.onChange(value === '' ? '' : Number.parseFloat(value));
+                        }}
+                        value={field.value ?? ''}
                         className="focus-visible:ring-primary"
                       />
                     </FormControl>
@@ -339,7 +364,11 @@ export default function CalculatorForm({ onCalculate }: CalculatorFormProps) {
                   <DialogHeader>
                     <DialogTitle>计算历史</DialogTitle>
                   </DialogHeader>
-                  <HistoryPanel onSelectRecord={handleSelectHistory} />
+                  <HistoryPanel 
+                    onSelectRecord={handleSelectHistory}
+                    history={history}
+                    onHistoryChange={refreshHistory}
+                  />
                 </DialogContent>
               </Dialog>
             </div>

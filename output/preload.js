@@ -1,16 +1,48 @@
 const fs = require('node:fs')
 const path = require('node:path')
+const os = require('node:os')
+
+// 增强的uTools环境检测
+function isUToolsEnv() {
+  try {
+    return typeof utools !== 'undefined' && 
+           typeof utools.getPath === 'function' &&
+           typeof utools.dbStorage === 'object'
+  } catch (e) {
+    return false
+  }
+}
 
 // 在uTools环境中直接挂载API到window对象
-if (typeof utools !== 'undefined') {
+if (isUToolsEnv()) {
   // 创建安全的数据目录路径
   const getDataPath = () => {
-    return path.join(utools.getPath('appData'), 'compound-calculator')
+    const basePath = utools.getPath('appData')
+    // Windows特殊处理
+    if (os.platform() === 'win32') {
+      try {
+        fs.accessSync(basePath, fs.constants.R_OK | fs.constants.W_OK)
+      } catch (e) {
+        console.error('Windows目录权限错误:', e)
+        // 回退到用户主目录
+        return path.join(os.homedir(), 'compound-calculator')
+      }
+    }
+    return path.join(basePath, 'compound-calculator')
   }
 
   // 初始化数据目录
-  if (!fs.existsSync(getDataPath())) {
-    fs.mkdirSync(getDataPath(), { recursive: true })
+  try {
+    if (!fs.existsSync(getDataPath())) {
+      fs.mkdirSync(getDataPath(), { recursive: true })
+      // Windows下设置目录权限
+      if (os.platform() === 'win32') {
+        fs.chmodSync(getDataPath(), 0o777)
+      }
+    }
+  } catch (e) {
+    console.error('初始化数据目录失败:', e)
+    throw new Error('无法创建数据目录: ' + e.message)
   }
 
   // 复利计算函数
@@ -78,5 +110,9 @@ if (typeof utools !== 'undefined') {
     console.log('插件退出')
   })
 } else {
-  console.error('uTools环境未正确初始化！')
+  const errorMsg = 'uTools环境未正确初始化！当前平台: ' + (os.platform() || '未知')
+  console.error(errorMsg)
+  if (typeof window !== 'undefined') {
+    window.alert?.(errorMsg)
+  }
 }
